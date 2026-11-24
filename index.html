@@ -384,6 +384,19 @@ if ('serviceWorker' in navigator) window.addEventListener('load', () => navigato
   .eqt{width:100%;border-collapse:collapse;font-size:13px}
   .eqt td,.eqt th{padding:9px 8px;border-bottom:1px solid var(--line);text-align:left}
   .eqt th{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+  .almf{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+  .almf input,.almf select,.almcont input{font:inherit;font-size:13px;padding:8px 10px;border:1px solid var(--line2);background:#fff;color:var(--ink);min-width:0}
+  .almf input{flex:1 1 240px}.almf select{flex:0 1 220px}
+  .almt td small{display:block;font-size:11px;color:var(--muted);margin-top:2px}
+  .almt tbody tr{cursor:pointer}.almt tbody tr:hover{background:#faf8f3}.almt tr.inat{opacity:.5}
+  .almt .neg{color:#c92a2a;font-weight:700}
+  .almsit{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+  .almsit div{border:1px solid var(--line);border-top:3px solid var(--c);padding:8px 10px}
+  .almsit span{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+  .almsit b{font-size:22px;font-family:'League Spartan',Inter,sans-serif}
+  .almcont{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end;margin-top:12px}
+  .almcont label{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);display:grid;gap:4px}
+  @media (max-width:640px){ .almsit{grid-template-columns:repeat(2,1fr)} .almcont{grid-template-columns:1fr} .almt th:nth-child(2),.almt td:nth-child(2){display:none} .alme th:nth-child(4),.alme td:nth-child(4),.alme th:nth-child(5),.alme td:nth-child(5),.alme th:nth-child(6),.alme td:nth-child(6){display:none} }
   .eqf{display:grid;grid-template-columns:1fr 1.3fr 150px 150px auto;gap:8px;align-items:end}
   .eqf label{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);display:grid;gap:4px}
   .tbl2{width:100%;border-collapse:collapse;font-size:12.5px}
@@ -434,7 +447,9 @@ const NAVI = {
   logistica:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 6h13v10H1zM14 10h4l3 3v3h-7z"/><circle cx="5" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg>'
 };
 NAVI.equipe = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.3-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><circle cx="17" cy="9" r="2.6"/><path d="M16 14.6c2.8.1 4.8 1.8 5.4 4.9"/></svg>';
-const NOMES = {dashboard:'Dashboard',negocios:'Negócios',financeiro:'Financeiro',logistica:'Logística',equipe:'Equipe'};
+NAVI.almoxarifado = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8l9-5 9 5v8l-9 5-9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg>';
+const NOMES = {dashboard:'Dashboard',negocios:'Negócios',financeiro:'Financeiro',logistica:'Logística',almoxarifado:'Almoxarifado',equipe:'Equipe'};
+const PERFIS_LISTA = [['admin','Admin'],['financeiro','Financeiro'],['operacao','Operação'],['almoxarifado','Almoxarifado']];
 Chart.defaults.color = '#7b7e86'; Chart.defaults.font.family = 'Inter'; Chart.defaults.borderColor = '#e8e5de';
 
 let DADOS = [], CUSTOS = [], charts = {};
@@ -490,12 +505,12 @@ const ativoOuFuturo = d => { const x = dataDesm(d) || dataEv(d) || dataMont(d); 
 function tabsNav(){
   const nPend = DADOS.filter(d=>ganho(d) && ativoOuFuturo(d) && pendencias(d).length).length;
   document.body.classList.add('app');
-  document.getElementById('snav').innerHTML = ['dashboard','negocios','financeiro','logistica'].concat(PODE.gerenciarUsuarios?['equipe']:[]).map(k=>
+  document.getElementById('snav').innerHTML = (ME && ME.perfil==='almoxarifado' ? ['almoxarifado'] : ['dashboard','negocios','financeiro','logistica','almoxarifado'].concat(PODE.gerenciarUsuarios?['equipe']:[])).map(k=>
     `<button data-a="${k}" class="${aba===k?'on':''}">${NAVI[k]}<span>${NOMES[k]}</span>${k==='logistica'&&nPend?`<span class="cnt">${nPend}</span>`:''}</button>`).join('');
   document.querySelectorAll('#snav button').forEach(b=>b.onclick=()=>{ aba=b.dataset.a; render(); window.scrollTo(0,0); });
 }
 function render(){ Object.values(charts).forEach(ch=>ch.destroy()); charts={}; tabsNav();
-  ({dashboard:telaDashboard, negocios:telaNegocios, financeiro:telaFinanceiro, logistica:telaSemana, equipe:telaEquipe})[aba](); }
+  ({dashboard:telaDashboard, negocios:telaNegocios, financeiro:telaFinanceiro, logistica:telaSemana, almoxarifado:telaAlmoxarifado, equipe:telaEquipe})[aba](); }
 function ir(a){ aba=a; render(); window.scrollTo(0,0); }
 function abrir(id){ detalhe(DADOS.find(d=>String(d['ID'])===String(id))); }
 function ligarFichas(root){ (root||document).querySelectorAll('[data-id]').forEach(b=>b.onclick=e=>{ if(e.target.closest('a,button')) return; abrir(b.dataset.id); }); }
@@ -872,6 +887,7 @@ function tabela(){
 function produtosFicha(d, prods){
   let det = []; try { det = JSON.parse(txt(d,'Produtos (detalhe)') || '[]'); } catch(e) { det = []; }
   if (!det.length) return prods.length ? `<ul class="plist">${prods.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>` : '<span class="warn">Nenhum produto no negócio</span>';
+  if (PODE.verValores===false) return `<table class="ptab"><thead><tr><th>Produto</th><th>Qtd</th></tr></thead><tbody>${det.map(p=>`<tr><td>${esc(p.n)}</td><td>${p.q==null?'—':p.q}</td></tr>`).join('')}</tbody></table>`;
   const tot = det.reduce((s,p)=>s+(+p.t||0),0);
   return `<table class="ptab"><thead><tr><th>Produto</th><th>Qtd</th><th>Unitário</th><th>Desconto</th><th>Total</th></tr></thead><tbody>${det.map(p=>`<tr><td>${esc(p.n)}</td><td>${p.q==null?'—':p.q}</td><td>${p.u==null?'—':(+p.u).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</td><td>${+p.desc?BRL(p.desc):'—'}</td><td><b>${p.t==null?'—':BRL(p.t)}</b></td></tr>`).join('')}</tbody>${det.length>1?`<tfoot><tr><td colspan="4">Total dos produtos</td><td><b>${BRL(tot)}</b></td></tr></tfoot>`:''}</table>`;
 }
@@ -903,6 +919,7 @@ function salvarOperacao(d, campo, valor, botao){
 }
 function detProdutos(d){ let det=[]; try { det = JSON.parse(txt(d,'Produtos (detalhe)')||'[]'); } catch(e){} return det; }
 function custosProdutoFicha(d){
+  if (PODE.verValores===false) return '';
   const det = detProdutos(d), salvos = CUSTOSP[String(d['ID'])] || [], ed = PODE.editarCustos;
   if (!det.length) return '';
   const linhas = det.map((p,i)=>{ const s = salvos.find(x=>+x.item===i+1) || salvos.find(x=>x.produto===p.n) || {}; return {p,i,s}; });
@@ -997,14 +1014,14 @@ function telaEquipe(){
     <section class="card" style="margin-bottom:14px"><div class="ch"><h2>Usuários</h2></div><div id="eqlist"><div class="loading" style="padding:30px">Carregando…</div></div>
       <div class="sec" style="font-size:10.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin:18px 0 8px">Adicionar usuário</div>
       <form class="eqf" id="eqf"><label>Nome<input id="eqn" required></label><label>E-mail<input id="eqe" type="email" required></label>
-        <label>Perfil<select id="eqp">${Object.entries({admin:'Admin',financeiro:'Financeiro',operacao:'Operação'}).map(([k,n])=>`<option value="${k}">${n}</option>`).join('')}</select></label>
+        <label>Perfil<select id="eqp">${PERFIS_LISTA.map(([k,n])=>`<option value="${k}">${n}</option>`).join('')}</select></label>
         <label>Senha inicial<input id="eqs" type="text" minlength="6" required placeholder="mín. 6 caracteres"></label><button class="btnp dk" type="submit">Adicionar</button></form>
-      <div style="font-size:12px;color:var(--muted);margin-top:12px;line-height:1.6"><b>Admin</b>: vê e edita tudo e cuida da equipe · <b>Financeiro</b>: lança custo e fornecedor de cada produto · <b>Operação</b>: dá os checks da logística (vai direto para o Agendor). Todos veem os valores.</div></section>
+      <div style="font-size:12px;color:var(--muted);margin-top:12px;line-height:1.6"><b>Admin</b>: vê e edita tudo e cuida da equipe · <b>Financeiro</b>: lança custo e fornecedor de cada produto · <b>Operação</b>: dá os checks da logística (vai direto para o Agendor) e cuida do catálogo do almoxarifado · <b>Almoxarifado</b>: só a tela do almoxarifado, conta e movimenta material, sem ver valores em R$. Os demais veem os valores.</div></section>
     <section class="card"><div class="ch"><h2>Histórico de alterações</h2><span class="sub">últimas ${HIST.length}</span></div>
       <div class="tablewrap" style="max-height:480px"><table class="tbl2"><thead><tr><th>Quando</th><th>Quem</th><th>Negócio</th><th>O que mudou</th><th>Antes</th><th>Depois</th></tr></thead><tbody>${HIST.map(x=>`<tr ${x.id?`data-id="${x.id}" style="cursor:pointer"`:''}><td>${new Date(x.quando).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'})}</td><td>${esc(String(x.usuario).replace(/\s*<.*>/,''))}</td><td>${esc(x.negocio||'—')}</td><td>${esc(x.oque)}</td><td>${esc(x.antes||'—')}</td><td>${esc(x.depois||'—')}</td></tr>`).join('') || '<tr><td colspan="6">Nenhuma alteração feita pelo app ainda.</td></tr>'}</tbody></table></div></section>`;
   ligarFichas(document.querySelector('.tbl2:last-of-type') ? document.getElementById('app') : null);
   const desenhar = lista => { EQUIPE = lista;
-    document.getElementById('eqlist').innerHTML = `<table class="eqt"><thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th></th></tr></thead><tbody>${lista.map(u=>`<tr><td>${esc(u.nome||'—')}</td><td>${esc(u.email)}</td><td><select data-pf="${esc(u.email)}" ${u.email===ME.email?'disabled':''}>${[['admin','Admin'],['financeiro','Financeiro'],['operacao','Operação']].map(([k,n])=>`<option value="${k}" ${u.perfil===k?'selected':''}>${n}</option>`).join('')}</select></td><td style="white-space:nowrap;text-align:right"><button class="btns" data-rs="${esc(u.email)}">Nova senha</button> ${u.email!==ME.email?`<button class="btns" data-rm="${esc(u.email)}" style="color:#c92a2a">Remover</button>`:'<span style="font-size:11px;color:var(--muted)">você</span>'}</td></tr>`).join('')}</tbody></table>`;
+    document.getElementById('eqlist').innerHTML = `<table class="eqt"><thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th></th></tr></thead><tbody>${lista.map(u=>`<tr><td>${esc(u.nome||'—')}</td><td>${esc(u.email)}</td><td><select data-pf="${esc(u.email)}" ${u.email===ME.email?'disabled':''}>${PERFIS_LISTA.map(([k,n])=>`<option value="${k}" ${u.perfil===k?'selected':''}>${n}</option>`).join('')}</select></td><td style="white-space:nowrap;text-align:right"><button class="btns" data-rs="${esc(u.email)}">Nova senha</button> ${u.email!==ME.email?`<button class="btns" data-rm="${esc(u.email)}" style="color:#c92a2a">Remover</button>`:'<span style="font-size:11px;color:var(--muted)">você</span>'}</td></tr>`).join('')}</tbody></table>`;
     const get = e => EQUIPE.find(u=>u.email===e);
     document.querySelectorAll('[data-pf]').forEach(s=>s.onchange=()=>{ const u=get(s.dataset.pf); api('salvarMembro',{email:u.email,nome:u.nome,perfil:s.value}).then(l=>{desenhar(l);toast('✓ Perfil atualizado');}).catch(e=>{toast(e.message,true);desenhar(EQUIPE);}); });
     document.querySelectorAll('[data-rs]').forEach(b=>b.onclick=()=>{ const u=get(b.dataset.rs); const s=prompt('Nova senha para '+u.email+' (mínimo 6 caracteres):'); if(!s) return; api('salvarMembro',{email:u.email,nome:u.nome,perfil:u.perfil,senha:s}).then(l=>{ if(u.email===ME.email) guardarSenha(s); desenhar(l); toast('✓ Senha redefinida. Passe para a pessoa por WhatsApp.'); }).catch(e=>toast(e.message,true)); });
@@ -1043,11 +1060,11 @@ function detalhe(d){
       ${produtosFicha(d, prods)}
       ${custosProdutoFicha(d)}
       ${txt(d,'Descrição')?`<div class="sec">Observações</div><div style="font-size:13.5px;white-space:pre-wrap">${esc(txt(d,'Descrição'))}</div>`:''}
-      <div class="sec">Financeiro</div>
+      ${PODE.verValores===false?'':`<div class="sec">Financeiro</div>
       <div class="big"><div><span>Contrato</span><b>${BRL(c)}</b></div><div><span>Lucro</span><b class="${l>=0?'pos':'neg'}">${BRL(l)}</b><span style="text-transform:none;letter-spacing:0">${c?PCT(l/c)+' de margem':''}</span></div></div>
       ${CUSTOS.map((k,i)=>{ const v=+d[k]||0; return `<div class="row"><span><span class="sw" style="display:inline-block;width:8px;height:8px;margin-right:8px;background:${CORES_CUSTO[i]}"></span>${k}</span><span>${v?BRL2(v):'<span style="color:#c4c0b8">—</span>'}</span>${v&&c?`<div class="bar"><span style="width:${Math.min(100,v/c*100)}%;background:${CORES_CUSTO[i]}"></span></div>`:''}</div>`; }).join('')}
       <div class="row tot"><span>Total de despesas</span><span>${BRL2(t)}</span></div>
-      ${t===0?'<div class="note">Nenhuma despesa lançada no Agendor para este evento ainda.</div>':''}
+      ${t===0?'<div class="note">Nenhuma despesa lançada no Agendor para este evento ainda.</div>':''}`}
       ${histNegocio(d)}
       ${d['Link no Agendor']?`<a class="open" href="${d['Link no Agendor']}" target="_blank">Abrir no Agendor ↗</a>`:''}
     </div>`;
@@ -1059,6 +1076,114 @@ function fechar(){ fichaAberta = null; document.getElementById('drawer').classLi
 document.getElementById('ovl').onclick = fechar;
 document.addEventListener('keydown', e => { if(e.key==='Escape') fechar(); });
 
+// ================= ALMOXARIFADO (galpão R. São Vicente, 2 — Cotia) =================
+let ALM = null, almSub = 'estoque', almBusca = '', almCat = '';
+const SIT_COR = {'Disponível':'#2b8a3e','Em evento':'#b8913a','Manutenção':'#e8590c','Extraviado':'#c92a2a'};
+const qtdFmt = n => (Math.round((+n||0)*1000)/1000).toLocaleString('pt-BR');
+function saldoDe(id){ return (ALM && ALM.saldos[id]) || {'Disponível':0,'Em evento':0,'Manutenção':0,'Extraviado':0}; }
+function telaAlmoxarifado(){
+  const app = document.getElementById('app');
+  if (!ALM) {
+    app.innerHTML = '<div class="loading"><div class="spin"></div>Carregando almoxarifado…</div>';
+    api('almoxDados').then(r=>{ ALM = r; if (aba==='almoxarifado') telaAlmoxarifado(); }).catch(e=>{ app.innerHTML = `<div class="note">${esc(e.message)}</div>`; });
+    return;
+  }
+  const podeCat = !!PODE.editarCatalogo, podeMov = !!PODE.movimentarEstoque;
+  const ativos = ALM.materiais.filter(m=>m.ativo);
+  const cats = [...new Set(ALM.materiais.map(m=>m.categoria).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+  const bate = m => (!almCat || m.categoria===almCat) && (!almBusca || (m.nome+' '+m.categoria+' '+m.codigo+' '+m.nomesAgendor+' '+m.id).toLowerCase().includes(almBusca.toLowerCase()));
+  const proprios = ativos.filter(m=>m.controla);
+  const tot = {'Disponível':0,'Em evento':0,'Manutenção':0,'Extraviado':0};
+  const semContagem = proprios.filter(m=>!ALM.movimentos.some(x=>x.material===m.id));
+  const baixo = proprios.filter(m=>m.minimo>0 && saldoDe(m.id)['Disponível']<m.minimo && semContagem.indexOf(m)<0);
+  app.innerHTML = `<div class="ph"><div><h2>Almoxarifado</h2><div class="sub">Galpão R. São Vicente, 2 — Cotia · entrada e saída de material</div></div>
+      <div class="seg" id="almsub"><button data-s="estoque" class="${almSub==='estoque'?'on':''}">Estoque</button><button data-s="catalogo" class="${almSub==='catalogo'?'on':''}">Catálogo</button><button data-s="movimentos" class="${almSub==='movimentos'?'on':''}">Movimentos</button></div></div>
+    <div class="almf"><input id="almq" placeholder="Buscar material, código ou nome no Agendor" value="${esc(almBusca)}">
+      <select id="almc"><option value="">Todas as categorias</option>${cats.map(c=>`<option ${c===almCat?'selected':''}>${esc(c)}</option>`).join('')}</select>
+      ${podeCat?'<button class="btnp dk" id="almnovo">+ Novo material</button>':''}</div>
+    <div id="almbody"></div>`;
+  const corpo = document.getElementById('almbody');
+  if (almSub==='estoque') {
+    if (!ativos.length) corpo.innerHTML = `<div class="empty" style="padding:40px">O catálogo ainda está vazio.<br>${podeCat?'Cadastre os materiais em <b>+ Novo material</b> e depois use <b>Contar</b> para lançar o que existe no galpão.':'Peça para o Max ou o Gabriel cadastrarem os materiais.'}</div>`;
+    else {
+      const lista = proprios.filter(bate);
+      const terc = ativos.filter(m=>!m.controla && bate(m));
+      corpo.innerHTML = `${baixo.length?`<div class="note" style="margin:0 0 12px">Abaixo do mínimo: ${baixo.map(m=>esc(m.nome)+' ('+qtdFmt(saldoDe(m.id)['Disponível'])+' de '+qtdFmt(m.minimo)+')').join(' · ')}</div>`:''}
+        ${semContagem.length?`<div class="note" style="margin:0 0 12px;color:var(--ink2);background:#f6f4ef;border-color:var(--line2)">${semContagem.length} material(is) ainda sem contagem. Abra o item e toque em <b>Contar</b>.</div>`:''}
+        <section class="card"><div class="tablewrap"><table class="tbl2 almt alme"><thead><tr><th>Material</th><th>Categoria</th>${ALM.situacoes.map(s=>`<th class="num">${s}</th>`).join('')}<th class="num">Total</th></tr></thead><tbody>
+        ${lista.map(m=>{ const s=saldoDe(m.id); ALM.situacoes.forEach(k=>tot[k]+=s[k]); const t=ALM.situacoes.reduce((a,k)=>a+s[k],0);
+          return `<tr data-mat="${m.id}"><td><b>${esc(m.nome)}</b><small>${m.id}${m.codigo?' · '+esc(m.codigo):''}${m.origem==='Próprio e terceiro'?' · também alugamos de terceiro':''}</small></td><td>${esc(m.categoria||'—')}</td>${ALM.situacoes.map(k=>`<td class="num ${k==='Disponível'&&m.minimo>0&&s[k]<m.minimo?'neg':''}">${s[k]?qtdFmt(s[k]):'<span style="color:#c4c0b8">0</span>'}</td>`).join('')}<td class="num"><b>${qtdFmt(t)}</b> <small style="display:inline">${esc(m.unidade)}</small></td></tr>`; }).join('') || `<tr><td colspan="${ALM.situacoes.length+3}">Nada encontrado.</td></tr>`}
+        </tbody></table></div></section>
+        ${terc.length?`<section class="card" style="margin-top:14px"><div class="ch"><h2>Materiais de terceiros</h2><span class="sub">não ficam no galpão: sem saldo, só referência para a OS</span></div><table class="tbl2"><tbody>${terc.map(m=>`<tr data-mat="${m.id}"><td><b>${esc(m.nome)}</b> <small style="display:inline">${m.id}</small></td><td>${esc(m.categoria||'—')}</td><td>${esc(m.unidade)}</td></tr>`).join('')}</tbody></table></section>`:''}`;
+    }
+  } else if (almSub==='catalogo') {
+    const lista = ALM.materiais.filter(bate);
+    corpo.innerHTML = `<section class="card"><div class="tablewrap"><table class="tbl2 almt"><thead><tr><th>ID</th><th>Material</th><th>Categoria</th><th>Unidade</th><th>Origem</th><th class="num">Mínimo</th><th>Situação</th></tr></thead><tbody>
+      ${lista.map(m=>`<tr data-mat="${m.id}" class="${m.ativo?'':'inat'}"><td>${m.id}</td><td><b>${esc(m.nome)}</b>${m.nomesAgendor?`<small>Agendor: ${esc(m.nomesAgendor)}</small>`:''}</td><td>${esc(m.categoria||'—')}</td><td>${esc(m.unidade)}</td><td><span class="tg ${m.origem==='Terceiro'?'Terceiros':m.origem==='Próprio'?'Interna':'Mista'}">${esc(m.origem)}</span></td><td class="num">${m.controla&&m.minimo?qtdFmt(m.minimo):'—'}</td><td>${m.ativo?'Ativo':'Inativo'}</td></tr>`).join('') || '<tr><td colspan="7">Nenhum material cadastrado.</td></tr>'}
+      </tbody></table></div></section>`;
+  } else {
+    const nomes = Object.fromEntries(ALM.materiais.map(m=>[m.id,m]));
+    const lista = ALM.movimentos.filter(x=>!almBusca && !almCat || (nomes[x.material] && bate(nomes[x.material])));
+    corpo.innerHTML = `<section class="card"><div class="tablewrap" style="max-height:620px"><table class="tbl2"><thead><tr><th>Quando</th><th>Tipo</th><th>Material</th><th class="num">Qtd</th><th>De → Para</th><th>OS</th><th>Quem</th><th>Obs.</th></tr></thead><tbody>
+      ${lista.map(x=>`<tr ${x.negocio?`data-id="${esc(x.negocio)}" style="cursor:pointer"`:''}><td>${new Date(x.quando).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'})}</td><td>${esc(x.tipo)}</td><td>${esc(x.nome)}</td><td class="num">${qtdFmt(x.qtd)}</td><td>${esc(x.de||'—')} → ${esc(x.para||'—')}</td><td>${esc(x.os||'—')}</td><td>${esc(x.conferiu||x.por||'—')}</td><td>${esc(x.obs||'')}</td></tr>`).join('') || '<tr><td colspan="8">Nenhum movimento registrado ainda.</td></tr>'}
+      </tbody></table></div></section>`;
+    ligarFichas(corpo);
+  }
+  document.querySelectorAll('#almsub button').forEach(b=>b.onclick=()=>{ almSub=b.dataset.s; telaAlmoxarifado(); });
+  const q = document.getElementById('almq'); q.oninput = () => { almBusca = q.value; const pos=q.selectionStart; telaAlmoxarifado(); const n=document.getElementById('almq'); n.focus(); n.setSelectionRange(pos,pos); };
+  document.getElementById('almc').onchange = e => { almCat = e.target.value; telaAlmoxarifado(); };
+  const nb = document.getElementById('almnovo'); if (nb) nb.onclick = () => fichaMaterial(null);
+  corpo.querySelectorAll('[data-mat]').forEach(tr=>tr.onclick=()=>fichaMaterial(ALM.materiais.find(m=>m.id===tr.dataset.mat)));
+}
+function abrirGaveta(html){ const dr=document.getElementById('drawer'); dr.innerHTML=html; fichaAberta=null; dr.classList.add('on'); document.getElementById('ovl').classList.add('on'); dr.scrollTop=0; }
+function fichaMaterial(m){
+  const podeCat = !!PODE.editarCatalogo, podeMov = !!PODE.movimentarEstoque;
+  const editar = podeCat && (!m || true);
+  const s = m ? saldoDe(m.id) : null;
+  const movs = m ? ALM.movimentos.filter(x=>x.material===m.id) : [];
+  const nomesProd = [...new Set(DADOS.flatMap(d=>produtosLista(d)))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+  const cats = [...new Set(ALM.materiais.map(x=>x.categoria).filter(Boolean))];
+  const v = k => esc(m ? (m[k]??'') : '');
+  abrirGaveta(`<div class="dh"><span class="badge" style="--sc:#15171b">${m?m.id:'Novo material'}</span><h3>${m?esc(m.nome):'Cadastrar material'}</h3><div class="meta">${m?esc(m.origem)+' · '+esc(m.unidade)+(m.categoria?' · '+esc(m.categoria):''):'Galpão R. São Vicente, 2 — Cotia'}</div><button class="x" onclick="fechar()">×</button></div>
+    <div class="db">
+    ${m && m.controla ? `<div class="sec">Saldo agora</div><div class="almsit">${ALM.situacoes.map(k=>`<div style="--c:${SIT_COR[k]}"><span>${k}</span><b>${qtdFmt(s[k])}</b></div>`).join('')}</div>
+      ${podeMov?`<form id="fcont" class="almcont"><label>Contagem disponível<input id="cqtd" type="text" inputmode="decimal" autocomplete="off" required placeholder="${qtdFmt(s['Disponível'])}"></label><label>Observação<input id="cobs" placeholder="opcional"></label><button class="btnp" type="submit">Contar</button></form>
+      <div style="font-size:11.5px;color:var(--muted);margin-top:6px">Informe quanto há disponível no galpão agora. O sistema grava a diferença como “Ajuste de inventário”, com seu nome e a hora.</div>`:''}` : ''}
+    ${m && !m.controla ? `<div class="note" style="margin-top:0">Material de terceiro: não fica no galpão, então não tem saldo. Serve de referência na OS.</div>`:''}
+    ${editar ? `<div class="sec">${m?'Cadastro':'Dados do material'}</div>
+      <form id="fmat"><div class="frm">
+        <label style="grid-column:1/-1">Nome<input id="mnome" required maxlength="120" value="${v('nome')}"></label>
+        <label>Categoria<input id="mcat" list="dlcat" maxlength="60" value="${v('categoria')}"></label>
+        <label>Unidade<select id="mun">${ALM.unidades.map(u=>`<option ${m&&m.unidade===u?'selected':''}>${u}</option>`).join('')}</select></label>
+        <label>Origem<select id="morig">${ALM.origens.map(o=>`<option ${(m?m.origem:'Próprio')===o?'selected':''}>${o}</option>`).join('')}</select></label>
+        <label>Estoque mínimo<input id="mmin" type="text" inputmode="decimal" autocomplete="off" value="${m&&m.minimo?m.minimo:''}"></label>
+        <label style="grid-column:1/-1">Nomes no Agendor (separe por ;)<input id="mag" list="dlprod" maxlength="500" value="${v('nomesAgendor')}" placeholder="como o produto aparece na proposta"></label>
+        <label>Código / patrimônio<input id="mcod" maxlength="60" value="${v('codigo')}" placeholder="opcional"></label>
+        <label>Situação<select id="mativo"><option value="1">Ativo</option><option value="0" ${m&&!m.ativo?'selected':''}>Inativo</option></select></label>
+        <label style="grid-column:1/-1">Observações<input id="mobs" maxlength="500" value="${v('obs')}"></label>
+      </div><datalist id="dlcat">${cats.map(c=>`<option value="${esc(c)}">`).join('')}</datalist><datalist id="dlprod">${nomesProd.map(c=>`<option value="${esc(c)}">`).join('')}</datalist>
+      <button class="btnp dk" type="submit" style="margin-top:10px">${m?'Salvar alterações':'Cadastrar material'}</button>
+      ${m?'<div style="font-size:11.5px;color:var(--muted);margin-top:6px">Material não se apaga: marque como Inativo para tirar da lista. O histórico continua.</div>':''}</form>` : (m?`<div class="sec">Cadastro</div><div class="row"><span>Nomes no Agendor</span><span>${esc(m.nomesAgendor||'—')}</span></div><div class="row"><span>Código</span><span>${esc(m.codigo||'—')}</span></div>${m.obs?`<div class="row"><span>Observações</span><span>${esc(m.obs)}</span></div>`:''}`:'')}
+    ${m ? `<div class="sec">Histórico deste material</div>${movs.length?`<table class="tbl2"><tbody>${movs.slice(0,40).map(x=>`<tr><td>${new Date(x.quando).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'})}</td><td>${esc(x.tipo)}${x.os?' · '+esc(x.os):''}</td><td class="num">${x.para==='Disponível'?'+':x.de==='Disponível'?'−':''}${qtdFmt(x.qtd)}</td><td>${esc(x.conferiu||x.por||'')}</td></tr>`).join('')}</tbody></table>`:'<div style="font-size:13px;color:var(--muted)">Nenhum movimento ainda.</div>'}
+      <div style="font-size:11px;color:var(--muted);margin-top:10px">Cadastrado por ${esc(m.criadoPor||'—')}${m.atualizadoPor&&m.atualizadoEm!==m.criadoEm?' · editado por '+esc(m.atualizadoPor):''}</div>` : ''}
+    </div>`);
+  const fm = document.getElementById('fmat');
+  if (fm) fm.onsubmit = ev => { ev.preventDefault(); const b = fm.querySelector('button[type=submit]'); b.disabled = true; b.textContent = 'Salvando…';
+    const dado = { id: m?m.id:'', nome: val('mnome'), categoria: val('mcat'), unidade: val('mun'), origem: val('morig'), minimo: val('mmin').replace(',','.'), nomesAgendor: val('mag'), codigo: val('mcod'), ativo: val('mativo')==='1', obs: val('mobs') };
+    api('salvarMaterial', dado).then(r=>{ ALM = r; toast(m?'✓ Material atualizado':'✓ Material cadastrado'); const novo = m ? r.materiais.find(x=>x.id===m.id) : r.materiais.find(x=>x.nome===dado.nome); telaAlmoxarifado(); fichaMaterial(novo); })
+      .catch(e=>{ toast(e.message,true); b.disabled=false; b.textContent = m?'Salvar alterações':'Cadastrar material'; }); };
+  const fc = document.getElementById('fcont');
+  if (fc) fc.onsubmit = ev => { ev.preventDefault(); const b = fc.querySelector('button'); const cv = val('cqtd').trim(), n = parseFloat(cv.includes(',') ? cv.replace(/\./g,'').replace(',','.') : cv);
+    if (!isFinite(n) || n < 0) return toast('Informe a quantidade contada (zero ou mais).', true);
+    const dif = Math.round((n - s['Disponível'])*1000)/1000;
+    if (dif===0) return toast('Contagem confere com o saldo. Nada a ajustar.');
+    if (!confirm(`${m.nome}: saldo disponível ${qtdFmt(s['Disponível'])} → ${qtdFmt(n)} (${dif>0?'+':''}${qtdFmt(dif)}). Confirmar contagem?`)) return;
+    b.disabled = true; b.textContent = 'Gravando…';
+    api('registrarContagem', m.id, n, val('cobs')).then(r=>{ ALM = r; toast('✓ Contagem registrada'); telaAlmoxarifado(); fichaMaterial(r.materiais.find(x=>x.id===m.id)); })
+      .catch(e=>{ toast(e.message,true); b.disabled=false; b.textContent='Contar'; }); };
+}
+const val = id => (document.getElementById(id)||{}).value || '';
+
 // ---------------- login ----------------
 const LOGIN_KEY = 'rcgk_painel_login';
 function iniciar(r){
@@ -1066,6 +1191,8 @@ function iniciar(r){
   document.getElementById('sync').innerHTML = `<span class="dot"></span><span>Atualizado ${r.sincronizadoEm ? new Date(r.sincronizadoEm).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—'}</span><button class="btn-ghost" onclick="sair()">Sair</button>`;
   document.getElementById('sync2').innerHTML = (ME?`<div class="me"><span class="av">${iniciais(ME.nome)}</span><div>${esc(ME.nome)}<small>${esc((r.perfis||{})[ME.perfil]||ME.perfil)}</small></div></div>`:'') + document.getElementById('sync').innerHTML + `<div class="sfb"><button class="btn-ghost" onclick="trocarSenha()">Trocar senha</button></div>`;
   document.getElementById('sync').insertAdjacentHTML('beforeend','<button class="btn-ghost" onclick="trocarSenha()">Senha</button>');
+  if (ME && ME.perfil==='almoxarifado') aba = 'almoxarifado';
+  ALM = null;
   render();
 }
 function entrar(email, senha, lembrar){
